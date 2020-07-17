@@ -2,8 +2,10 @@
 let MyPromise = require('./myPromise.js')
 
 let promise = new MyPromise((resolve, reject) => {
-        // resolve('成功')
-        reject('失败')
+        setTimeout(() => {
+            // resolve('成功')
+            reject('失败')
+        }, 1000);
     
 })
 
