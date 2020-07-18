@@ -12,7 +12,7 @@
  * 7. 链式调用
  *    1. then返回的是promise实例，才能继续调用then方法
  *    2. 成功或者失败回调应该是一个数组，而非一个普通变量，用来存储每一次的回调方法，然后才能依次调用
- * 8. 异步链式调用。。。待定
+ * 8. 异步链式调用
  */
 
 const PENDING = 'pendding';
@@ -32,12 +32,12 @@ class MyPromise {
         this.status = FULFILLED;
         this.value = resolve;
         // 要想实现链式调用，就把所有的then中的成功或失败回调存在一个数组中，每次调用后弹出
-        while (this.successCallback.length) this.successCallback.shift(this.value);
+        while (this.successCallback.length) this.successCallback.shift()();
     }
     reject = reason => {
         this.status = FAILED;
         this.reason = reason;
-        while (this.failCallback.length) this.failCallback.shift(this.reason);
+        while (this.failCallback.length) this.failCallback.shift()();
         
     }
     then(successCallback, failCallback) {
@@ -48,25 +48,32 @@ class MyPromise {
         return new MyPromise((resolve, reject) => {
             if (this.status === FULFILLED) {
                 let r = successCallback(this.value);
-                if (r instanceof MyPromise) {
-                    r.then(resolve, () => {})
-                } else {
-                    resolve(r)
-                }
+                resolvePromise (r, resolve, reject)
             } else if (this.status === FAILED) {
                 let r = failCallback(this.reason);
-                if (r instanceof MyPromise) {
-                    r.then(() => {}, reject)
-                } else {
-                    reject(r)
-                }
-            } else {
+                resolvePromise (r, resolve, reject)
+            } else if (this.status === PENDING) {
                 // 异步
-                // this.successCallback.push(successCallback);
-                // this.failCallback.push(failCallback);
+                this.successCallback.push(() => {
+                    let r = successCallback(this.value);
+                    resolvePromise (r, resolve, reject)
+                });
+                this.failCallback.push(() => {
+                    let r = failCallback(this.reason);
+                    resolvePromise (r, resolve, reject)
+                });
             }
         })
     }
 }
+
+function resolvePromise (r, resolve, reject) {
+    if (r instanceof MyPromise) {
+        r.then(resolve, reject)
+    } else {
+        resolve(r)
+    }
+}
+
 
 module.exports = MyPromise
