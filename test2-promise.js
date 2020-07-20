@@ -3,6 +3,8 @@
 let promise = new Promise((resolve, reject) => {
     setTimeout(() => {
         resolve('xxx')
+        // reject('xxx')
+        // throw(new Error('xxx'))
     }, 1000);
 })
 
@@ -16,13 +18,23 @@ function fn1(res) {
     console.log('fn1', res)
     return new Promise((r, j) => {
         setTimeout(() => {
-            r('fn1返回的值')
+            // r('fn1返回的值')
+            throw(new Error('xxx'))
         }, 1000);
     })
+    // return Promise.resolve('fn1 return ') 
+    // return 'fn1 return '
+    // throw(new Error('xxx'))
 }
 
 function fn2(res) {
     console.log('fn2', res)
+    // return 'fn2 return'             // 走fn3
+    // throw(new Error('fn2 error'))   // 走fn4
+    return new Promise((r, j) => {
+        j('fn2 reject')
+    })
+
 }
 
 function fn3(res) {

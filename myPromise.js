@@ -13,6 +13,7 @@
  *    1. then返回的是promise实例，才能继续调用then方法
  *    2. 成功或者失败回调应该是一个数组，而非一个普通变量，用来存储每一次的回调方法，然后才能依次调用
  * 8. 异步链式调用
+ * 9. 增加了调用then中函数抛出错误的情况，抛出错误走下一个then的reject，并将错误传入
  */
 
 const PENDING = 'pendding';
@@ -46,22 +47,34 @@ class MyPromise {
         // 如果回调中返回一个primise就调用这个promise中的then，然后把对一个的resolve或者reject传入返回的promise中
         // 这样即使上一个then不返回值，也就是返回的undefined也会执行，不会影响下一次then的调用
         return new MyPromise((resolve, reject) => {
-            if (this.status === FULFILLED) {
-                let r = successCallback(this.value);
-                resolvePromise (r, resolve, reject)
-            } else if (this.status === FAILED) {
-                let r = failCallback(this.reason);
-                resolvePromise (r, resolve, reject)
-            } else if (this.status === PENDING) {
-                // 异步
-                this.successCallback.push(() => {
+            try {
+                if (this.status === FULFILLED) {
                     let r = successCallback(this.value);
                     resolvePromise (r, resolve, reject)
-                });
-                this.failCallback.push(() => {
+                } else if (this.status === FAILED) {
                     let r = failCallback(this.reason);
                     resolvePromise (r, resolve, reject)
-                });
+                } else if (this.status === PENDING) {
+                    // 异步
+                    this.successCallback.push(() => {
+                        try {
+                            let r = successCallback(this.value);
+                            resolvePromise (r, resolve, reject)
+                        } catch (e) {
+                            reject(e)
+                        }
+                    });
+                    this.failCallback.push(() => {
+                        try {
+                            let r = failCallback(this.reason);
+                            resolvePromise (r, resolve, reject)
+                        } catch (e) {
+                            reject(e)
+                        }
+                    });
+                }
+            } catch (e) {
+                reject(e)
             }
         })
     }
