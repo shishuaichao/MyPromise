@@ -15,7 +15,8 @@
  * 8. 异步链式调用
  * 9. 增加了调用then中函数抛出错误的情况，抛出错误走下一个then的reject，并将错误传入
  * 10. catch() 方法返回一个Promise，并且处理拒绝的情况。它的行为与调用Promise.prototype.then(undefined, onRejected) 相同。 (事实上, calling obj.catch(onRejected) 内部calls obj.then(undefined, onRejected)).
- *      
+ * 11. all() 方法接收一个数组，成功返回一个按照数组传入顺序的返回数组，失败返回第一个失败的返回值
+ * 
  */
 
 const PENDING = 'pendding';
@@ -31,6 +32,7 @@ class MyPromise {
     reason = undefined;
     successCallback = [];
     failCallback = [];
+    allValue = [];
     resolve = resolve => {
         this.status = FULFILLED;
         this.value = resolve;
@@ -83,8 +85,49 @@ class MyPromise {
     catch(failCallback) {
         return this.then(() => {}, failCallback)
     }
+    
+    static all (args) {
+        if (!(args instanceof Array)) {
+            // 不是一个数组
+            throw(new SyntaxError('argument is not iterable'))
+        }
+        if (!args.length) {
+            return new MyPromise((resolve, reject) => {
+                resolve()
+            })
+        } else {
+            // 假设都是promise 返回一个promise
+            let num = 0;
+            let arr = [];
+            return new MyPromise((resolve, reject) => {
+                function addData(i, value) {
+                    arr[i] = value;
+                    num++
+                    if (num === args.length) {
+                        resolve(arr)
+                    }
+                }
+                for (let i=0; i<args.length; i++) {
+                    if (args[i] instanceof MyPromise) {
+                        // 传入的是primise，通过调用then来拿到传入promise的返回值，进行操作
+                        args[i].then(value => {
+                            addData(i, value)
+                        }, reason => {
+                            reject(reason)
+                        })
+                    } else {
+                        // 传入的是普通值，直接放入数组指定位置
+                        addData(i, args[i]);
+                    }
+                }
+            })
+            
+            
+        }
+        
+    }
 }
-// console.log(MyPromise.prototype.catch)
+
 
 function resolvePromise (r, resolve, reject) {
     if (r instanceof MyPromise) {
