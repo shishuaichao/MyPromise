@@ -16,7 +16,9 @@
  * 9. 增加了调用then中函数抛出错误的情况，抛出错误走下一个then的reject，并将错误传入
  * 10. catch() 方法返回一个Promise，并且处理拒绝的情况。它的行为与调用Promise.prototype.then(undefined, onRejected) 相同。 (事实上, calling obj.catch(onRejected) 内部calls obj.then(undefined, onRejected)).
  * 11. all() 方法接收一个数组，成功返回一个按照数组传入顺序的返回数组，失败返回第一个失败的返回值
- * 
+ * 12. finally() 方法接收回调，回调中不传参数只用来执行，它与Promise.resolve(3).then(() => {}, () => {}) 的区别在于,finally会把finally执行后的结果
+ *     传给下一个.then()的resolve中或者reject中，而Promise.resolve(3).then(() => {}, () => {})或者Promise.reject(3).then(() => {}, () => {})
+ *      的resolve结果均为undefined，示例代码中有
  */
 
 const PENDING = 'pendding';
@@ -33,17 +35,31 @@ class MyPromise {
     successCallback = [];
     failCallback = [];
     allValue = [];
+    finallyCallback = undefined;
+    finallySuccess = undefined;
+    finallyFail = undefined;
     resolve = resolve => {
         this.status = FULFILLED;
         this.value = resolve;
         // 要想实现链式调用，就把所有的then中的成功或失败回调存在一个数组中，每次调用后弹出
-        while (this.successCallback.length) this.successCallback.shift()();
+        while (this.successCallback.length) {
+            this.successCallback.shift()()
+        };
+        if (this.finallyCallback) {
+            this.finallyCallback()
+            this.finallySuccess(this.value)
+        }
     }
     reject = reason => {
         this.status = FAILED;
         this.reason = reason;
-        while (this.failCallback.length) this.failCallback.shift()();
-        
+        while (this.failCallback.length) {
+            this.failCallback.shift()()
+        };
+        if (this.finallyCallback) {
+            this.finallyCallback()
+            this.finallyFail(this.reason)
+        }
     }
     then(successCallback, failCallback) {
         // 首先链式调用的前提是必须返回一个自身的promise
@@ -125,6 +141,22 @@ class MyPromise {
             
         }
         
+    }
+
+    finally (cb) {
+        return new MyPromise((resolve, reject) => {
+            if (this.status === FULFILLED) {
+                cb()
+                resolve(this.value)
+            } else if (this.status === FAILED){
+                cb()
+                reject(this.reason)
+            } else {
+                this.finallyCallback = cb;
+                this.finallySuccess = resolve;
+                this.finallyFail = reject;
+            }
+        })
     }
 }
 

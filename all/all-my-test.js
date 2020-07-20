@@ -1,4 +1,4 @@
-let MyPromise = require('./myPromise')
+let MyPromise = require('../myPromise')
 
 function fn1 () {
     return new MyPromise((resolve, reject) => {
