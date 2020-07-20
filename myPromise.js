@@ -14,6 +14,8 @@
  *    2. 成功或者失败回调应该是一个数组，而非一个普通变量，用来存储每一次的回调方法，然后才能依次调用
  * 8. 异步链式调用
  * 9. 增加了调用then中函数抛出错误的情况，抛出错误走下一个then的reject，并将错误传入
+ * 10. catch() 方法返回一个Promise，并且处理拒绝的情况。它的行为与调用Promise.prototype.then(undefined, onRejected) 相同。 (事实上, calling obj.catch(onRejected) 内部calls obj.then(undefined, onRejected)).
+ *      
  */
 
 const PENDING = 'pendding';
@@ -78,7 +80,11 @@ class MyPromise {
             }
         })
     }
+    catch(failCallback) {
+        return this.then(() => {}, failCallback)
+    }
 }
+// console.log(MyPromise.prototype.catch)
 
 function resolvePromise (r, resolve, reject) {
     if (r instanceof MyPromise) {

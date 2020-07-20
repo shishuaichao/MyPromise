@@ -2,14 +2,16 @@ let MyPromise = require('./myPromise')
 
 let promise = new MyPromise((resolve, reject) => {
     setTimeout(() => {
-        // reject('xxx')
-        resolve('xxxx')
+        reject('xxx')
+        // resolve('xxxx')
     }, 1000);
 })
 
 
 promise
+.catch(e => {console.log('catch', e)})
 .then(fn1, fn2)
+.catch(e => {console.log('catch2', e)})
 .then(fn3, fn4) 
 .then(fn5, fn6)
 
@@ -17,7 +19,7 @@ function fn1(res) {
     console.log('fn1', res)
     return new MyPromise((r, j) => {
         setTimeout(() => {
-            r('fn1返回的值')
+            j('fn1返回的值')
             // throw('xxx')
         }, 1000);
     })
