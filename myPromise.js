@@ -19,6 +19,7 @@
  * 12. finally() 方法接收回调，回调中不传参数只用来执行，它与Promise.resolve(3).then(() => {}, () => {}) 的区别在于,finally会把finally执行后的结果
  *     传给下一个.then()的resolve中或者reject中，而Promise.resolve(3).then(() => {}, () => {})或者Promise.reject(3).then(() => {}, () => {})
  *      的resolve结果均为undefined，示例代码中有
+ * 13. race（）跟all方法一样，接收一个数组，但是这个是比赛谁先执行完，返回一个promise，存储第一个执行完的结果，成功或者失败。
  */
 
 const PENDING = 'pendding';
