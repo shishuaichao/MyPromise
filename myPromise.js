@@ -142,6 +142,16 @@ class MyPromise {
         }
         
     }
+    static resolve = (value) => {
+        return new MyPromise((r, j) => {
+            r(value)
+        })
+    }
+    static reject = (reason) => {
+        return new MyPromise((r, j) => {
+            j(reason)
+        })
+    }
 
     finally (cb) {
         return new MyPromise((resolve, reject) => {
