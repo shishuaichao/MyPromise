@@ -38,6 +38,7 @@ class MyPromise {
     finallyCallback = undefined;
     finallySuccess = undefined;
     finallyFail = undefined;
+    raceCallback = undefined;
     resolve = resolve => {
         this.status = FULFILLED;
         this.value = resolve;
@@ -141,6 +142,30 @@ class MyPromise {
             
         }
         
+    }
+    static race (args) {
+        let arr = [];
+        let num = 0;
+        return new MyPromise((resolve, reject) => {
+            function addData (i, value) {
+                arr[i] = value;
+                num++;
+                if (num === 1) {
+                    resolve(value)
+                }
+            }
+            for (let i=0; i<args.length; i++) {
+                if (args[i] instanceof MyPromise) {
+                    args[i].then(value => {
+                        addData(i, value);
+                    }, reason => {
+                        reject(reason)
+                    })
+                } else {
+                    addData(i, args[i])
+                }
+            }
+        })
     }
     static resolve = (value) => {
         return new MyPromise((r, j) => {
