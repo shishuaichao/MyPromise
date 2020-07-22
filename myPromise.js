@@ -101,7 +101,7 @@ class MyPromise {
         })
     }
     catch(failCallback) {
-        return this.then(() => {}, failCallback)
+        this.then(() => {}, failCallback)
     }
     
     static all (args) {

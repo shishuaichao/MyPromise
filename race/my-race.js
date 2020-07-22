@@ -24,9 +24,18 @@ function fn3() {
 }
 
 
-Promise.race([fn1(), fn2(), fn3()])
-.then((e) => {
-    console.log(e)
-}, e => {
-    console.log(e)
+// Promise.race([fn1(), fn2(), fn3()])
+// .then((e) => {
+//     console.log(e)
+// }, e => {
+//     console.log(e)
+// })
+
+let p = new Promise((res, rej) => {
+    rej('xxx')
 })
+p.catch(e => {
+    console.log(e)
+    return 'aaa'
+})
+.then(e => console.log(e))
